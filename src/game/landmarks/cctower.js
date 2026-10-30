@@ -5,7 +5,7 @@ import { BJ } from './axis.js'
 const STEEL = 0x9a9aa0
 
 export function buildCCTower(b, ctx) {
-  const H = 112, BALL_Y = 74, BALL_TOP = 90
+  const BALL_Y = 74, BALL_TOP = 90
   // 塔基裙房
   b.prism(0, 0, -0.4, 10, 14, 14, 12, 0xb8b4a8, { mat: 'stone' })
   b.prism(0, 0, 10, 12, 12, 12, 12, 0xc8c4b8, { mat: 'stone' })

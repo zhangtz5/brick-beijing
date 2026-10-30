@@ -1,5 +1,5 @@
-// 地图底图渲染（分区着色、珠江、道路、山体）
-import { RIVERS, ROADS, DISTRICTS, districtAt, rawHeight, isPark, worldBounds, BUS_ROUTE, METRO_STATIONS } from './geo.js'
+// 地图底图渲染（分区着色、水系、道路、山体）
+import { RIVERS, ROADS, DISTRICTS, districtAt, rawHeight, isPark, worldBounds, BUS_ROUTE } from './geo.js'
 
 export function renderBaseMap() {
   const B = worldBounds()

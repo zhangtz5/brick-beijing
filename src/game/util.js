@@ -79,3 +79,14 @@ export function todayKey() {
   const d = new Date()
   return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
 }
+
+// 把皮肤图重绘到 64×64 画布并编码为 PNG dataURL，
+// 保证存入 localStorage 的体积可控（避免大图撞配额）
+export function normalizeSkinDataURL(img) {
+  const c = document.createElement('canvas')
+  c.width = c.height = 64
+  const g = c.getContext('2d')
+  g.clearRect(0, 0, 64, 64)
+  g.drawImage(img, 0, 0, 64, 64)
+  return c.toDataURL('image/png')
+}

@@ -137,21 +137,26 @@
     <div v-else-if="ui.panel === 'settings'" class="mc-panel panel">
       <div class="head"><span class="mc-title">⚙ 设置</span><button class="mc-btn small" @click="close">✕</button></div>
       <div class="set">
-        <div class="srow"><span>画质</span>
+        <div class="srow">
+          <span>画质</span>
           <button v-for="q in qualities" :key="q.v" class="mc-btn small" :class="{ active: st.quality === q.v }" @click="st.quality = q.v; apply()">{{ q.n }}</button>
         </div>
-        <div class="srow"><span>水面倒影</span><button class="mc-btn small" :class="{ active: st.reflect }" @click="st.reflect = !st.reflect; apply()">{{ st.reflect ? '开' : '关' }}</button>
+        <div class="srow">
+          <span>水面倒影</span><button class="mc-btn small" :class="{ active: st.reflect }" @click="st.reflect = !st.reflect; apply()">{{ st.reflect ? '开' : '关' }}</button>
           <span>阴影</span><button class="mc-btn small" :class="{ active: st.shadows }" @click="st.shadows = !st.shadows; apply()">{{ st.shadows ? '开' : '关' }}</button>
           <span>小地图</span><button class="mc-btn small" :class="{ active: st.showMinimap }" @click="st.showMinimap = !st.showMinimap; apply()">{{ st.showMinimap ? '开' : '关' }}</button>
           <span>NPC 语音</span><button class="mc-btn small" :class="{ active: st.voice }" @click="st.voice = !st.voice; apply()">{{ st.voice ? '开' : '关' }}</button>
         </div>
-        <div class="srow"><span>时间流速</span>
+        <div class="srow">
+          <span>时间流速</span>
           <button v-for="s in [0, 0.5, 1, 3, 10]" :key="s" class="mc-btn small" :class="{ active: st.timeSpeed === s }" @click="st.timeSpeed = s; apply()">{{ s === 0 ? '暂停' : s + '×' }}</button>
         </div>
-        <div class="srow"><span>设定时间</span>
+        <div class="srow">
+          <span>设定时间</span>
           <button v-for="h in timeOpts" :key="h.h" class="mc-btn small" @click="setHour(h.h)">{{ h.n }}</button>
         </div>
-        <div class="srow"><span>天气</span>
+        <div class="srow">
+          <span>天气</span>
           <button class="mc-btn small" :class="{ active: !weatherLocked }" @click="unlockWeather">随机</button>
           <button v-for="(w, k) in WEATHERS" :key="k" class="mc-btn small" :class="{ active: weatherLocked === k }" @click="lockWeather(k)">{{ w.icon }} {{ w.name }}</button>
         </div>

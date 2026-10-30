@@ -11,23 +11,16 @@ import { PhotoSystem } from './photo.js'
 import { Player } from './player.js'
 import { Input } from './input.js'
 import { makeSkinCanvas } from './character.js'
-import { updateNightMaterials } from './materials.js'
-import { districtAt, DISTRICTS, terrainHeight, METRO_STATIONS, PIERS, project } from './geo.js'
-import { store, events, toast, banner, persist, checkTasks, ensureDaily } from './store.js'
+import { updateNightMaterials, getMaterials } from './materials.js'
+import { districtAt, DISTRICTS, terrainHeight, METRO_STATIONS, PIERS } from './geo.js'
+import { store, events, toast, banner, persist, ensureDaily } from './store.js'
 import { SHOPS, FOODS, SOUVENIRS, CULTURE } from './data.js'
 import { speak, voiceFor, stopVoice, VOICE_PRESETS, announce, chime } from './voice.js'
 import { formatTime, smooth, lerp, clamp } from './util.js'
 import { renderBaseMap } from './map.js'
 
-const SP = (lat, lon) => ({ ...project(lat, lon), y: 0 })
-export const SPAWNS = [
-  { id: 'tiananmen', name: '天安门广场', desc: '东城区 · 中轴核心', pos: SP(39.9005, 116.3975), yaw: 0 },
-  { id: 'wangfujing', name: '王府井', desc: '东城区 · 商业老街', pos: SP(39.9135, 116.412), yaw: 0 },
-  { id: 'shichahai', name: '什刹海', desc: '西城区 · 后海胡同', pos: SP(39.9395, 116.3925), yaw: 0 },
-  { id: 'aolin', name: '奥林匹克公园', desc: '朝阳区 · 鸟巢水立方', pos: SP(39.9925, 116.3925), yaw: 0 },
-  { id: 'yiheyuan', name: '颐和园', desc: '海淀区 · 皇家园林', pos: SP(39.9985, 116.281), yaw: 0 },
-  { id: 'guomao', name: '国贸 CBD', desc: '朝阳区 · 现代天际线', pos: SP(39.9085, 116.461), yaw: 0 }
-]
+// 出生点已抽到轻量模块 spawns.js，这里透传保持旧引用兼容
+export { SPAWNS } from './spawns.js'
 
 export class Game {
   constructor(container) {
@@ -94,13 +87,13 @@ export class Game {
     window.addEventListener('resize', this._resize)
     this.ro = new ResizeObserver(() => this.resize())
     this.ro.observe(container)
-    this.canvas.addEventListener('click', () => {
+    this.canvas.addEventListener('click', (this._click = () => {
       if (!store.ui.panel && !store.ui.dialog && !store.ui.mobile) {
         if (store.ui.photoMode) this.shutter()
         else this.input.requestLock()
       }
-    })
-    document.addEventListener('pointerlockchange', () => (store.ui.pointerLocked = document.pointerLockElement === this.canvas))
+    }))
+    document.addEventListener('pointerlockchange', (this._plc = () => (store.ui.pointerLocked = document.pointerLockElement === this.canvas)))
     ensureDaily()
   }
   pixelRatio() {
@@ -233,8 +226,35 @@ export class Game {
   dispose() {
     this.stop()
     window.removeEventListener('resize', this._resize)
+    document.removeEventListener('pointerlockchange', this._plc)
+    this.canvas.removeEventListener('click', this._click)
     this.ro.disconnect()
     this.input.dispose()
+    stopVoice()
+    // 逐个释放 NPC（含各自对话气泡贴图/材质，不走共享材质集）
+    for (const n of this.npcs.list) n.ch.dispose()
+    this.npcs.list.length = 0
+    // 场景内几何体全量释放；材质/贴图仅释放非共享的（共享单例下次开局还要复用）
+    const shared = new Set()
+    for (const m of Object.values(getMaterials())) {
+      shared.add(m.mat)
+      const map = m.mat.map || {}
+      if (map.isTexture) shared.add(map)
+      const em = m.mat.emissiveMap || {}
+      if (em.isTexture) shared.add(em)
+    }
+    this.scene.traverse((o) => {
+      if (o.geometry) o.geometry.dispose()
+      const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []
+      for (const mt of ms) {
+        if (shared.has(mt)) continue
+        if (mt.map && !shared.has(mt.map) && mt.map.isTexture && !mt.map.source?.data?.nodeType) mt.map.dispose()
+        mt.dispose()
+      }
+    })
+    // 摄影后期 render target
+    this.photo.dispose()
+    this.renderer.renderLists.dispose()
     this.renderer.dispose()
     this.canvas.remove()
   }
@@ -328,7 +348,7 @@ export class Game {
     h.z = p.pos.z
     h.alt = Math.round(p.pos.y * 2.5)
     if (d !== this.lastDistrict) {
-      if (this.lastDistrict !== null || true) {
+      {
         const D = DISTRICTS[d]
         if (D) banner(`进入 ${D.name}`, D.theme)
         events.district(d)
@@ -341,7 +361,7 @@ export class Game {
     } else if (p.ride && p.ride.type === 'cruise') h.ride = '🚢 昆明湖游船中 · WASD 在甲板走动 · C 拍照 · E 提前下船'
     else if (p.scripted && this.rideLabel) h.ride = this.rideLabel()
     else h.ride = null
-    // 每30秒保存位置
+    // 每约 15 秒保存位置
     this.saveT = (this.saveT || 0) + 0.2
     if (this.saveT > 15 && !p.ride && !p.scripted) {
       this.saveT = 0
@@ -521,7 +541,6 @@ export class Game {
         })
       }
       case 'elevatorTop': {
-        const dy = it.deckY || 210
         return this.dialog({
           title: it.elevLabel || '观景台', text: '你已登上高空观景台，脚下与眼前是整座北京城。按 C 拍照。',
           options: [

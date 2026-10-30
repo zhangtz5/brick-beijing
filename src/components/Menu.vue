@@ -118,7 +118,8 @@ import { ref, reactive, computed, watch, onBeforeUnmount, nextTick } from 'vue'
 import * as THREE from 'three'
 import { store, persist, resetSave } from '../game/store.js'
 import { SKIN_TONES, HAIR_COLORS, makeSkinCanvas, Character } from '../game/character.js'
-import { SPAWNS } from '../game/Game.js'
+import { SPAWNS } from '../game/spawns.js'
+import { normalizeSkinDataURL } from '../game/util.js'
 import { G } from '../game/instance.js'
 
 const emit = defineEmits(['start'])
@@ -161,10 +162,8 @@ function upload(e) {
     const img = new Image()
     img.onload = () => {
       if (img.width !== 64 || (img.height !== 64 && img.height !== 32)) return alert('请上传 64×64 的皮肤图片')
-      const c = document.createElement('canvas')
-      c.width = c.height = 64
-      c.getContext('2d').drawImage(img, 0, 0)
-      customSkin.value = c.toDataURL('image/png')
+      // 统一重绘到 64×64 后编码，控制存档体积
+      customSkin.value = normalizeSkinDataURL(img)
     }
     img.src = rd.result
   }

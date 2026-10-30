@@ -248,7 +248,7 @@ export function modernTower(b, cx, cz, w, d, h, color = 0x9fc0d8, opt = {}) {
   }
 }
 
-export function busShelter(b, x, z, rot = 0, name = '') {
+export function busShelter(b, x, z, name = '') {
   b.box(x - 3, 0, z - 0.8, x + 3, 0.15, z + 0.8, 0x9a9a9a, { solid: false })
   for (const dx of [-2.8, 2.8]) b.boxC(x + dx, 0, z - 0.6, 0.15, 2.8, 0.15, 0x3a6a9a, { solid: false })
   b.box(x - 3, 2.8, z - 0.9, x + 3, 3.0, z + 0.9, 0x3a6a9a, { solid: false })

@@ -14,10 +14,12 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, defineAsyncComponent } from 'vue'
 import { store } from './game/store.js'
 import Menu from './components/Menu.vue'
-import GameView from './components/GameView.vue'
+
+// 游戏视图异步加载：主菜单首屏不再拉入 Game.js + Three.js 游戏链路
+const GameView = defineAsyncComponent(() => import('./components/GameView.vue'))
 
 const gameMounted = ref(false)
 const loading = ref(false)
@@ -34,6 +36,20 @@ const TIPS = [
 ]
 const tip = ref(TIPS[0])
 
+// 等待异步组件 chunk 加载并完成挂载，拿到 GameView 实例
+function ensureGameView() {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('游戏模块加载超时，请刷新重试')), 60000)
+    const tryResolve = () => {
+      if (gv.value) {
+        clearTimeout(timer)
+        resolve(gv.value)
+      } else setTimeout(tryResolve, 50)
+    }
+    tryResolve()
+  })
+}
+
 async function startGame(spawn) {
   loading.value = true
   progress.value = 0
@@ -44,7 +60,8 @@ async function startGame(spawn) {
     gameMounted.value = true
     await nextTick()
   }
-  await gv.value.boot(spawn, (p, t) => {
+  const view = await ensureGameView()
+  await view.boot(spawn, (p, t) => {
     progress.value = p
     if (t) loadText.value = t
   })

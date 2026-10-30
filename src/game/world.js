@@ -2,7 +2,7 @@
 import * as THREE from 'three'
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
 import { RIVERS, ROADS, WATER_Y, BRIDGE_Y, riverAt } from './geo.js'
-import { getTextures, getMaterials } from './materials.js'
+import { getTextures } from './materials.js'
 import { Builder } from './builder.js'
 
 function riverGeometry() {

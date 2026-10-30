@@ -2,7 +2,7 @@
 import * as THREE from 'three'
 import { Builder, disposeGroup } from './builder.js'
 import { LANDMARKS } from './landmarks/index.js'
-import { project, terrainHeight, isWater, addLandOverride, LAND_OVERRIDES } from './geo.js'
+import { project, terrainHeight, isWater, addLandOverride } from './geo.js'
 
 export class LandmarkManager {
   constructor(scene, world, game) {

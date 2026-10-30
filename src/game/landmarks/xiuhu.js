@@ -38,7 +38,7 @@ function archBridge(b, x0, z0, x1, z1, n, width, color) {
 }
 
 // 长廊段落：沿方向步进的石柱 + 绿琉璃檐廊
-function corridor(b, x0, z0, x1, z1, color) {
+function corridor(b, x0, z0, x1, z1) {
   const L = Math.hypot(x1 - x0, z1 - z0)
   const n = Math.max(2, Math.round(L / 2.2))
   for (let i = 0; i <= n; i++) {
@@ -82,8 +82,8 @@ export function buildYiheyuan(b, ctx) {
   b.sign('排云殿', 18, 8.5, -18.9, 1.1, 0, { bg: '#5a1a14', fg: '#ffd76a', border: '#d9a628' })
   paifang(b, 18, -13, 11, 8, '云辉玉宇', BJ.wall, BJ.glazeY)
   // 长廊（西岸临水，画檐 728m 意象）
-  corridor(b, 8, -10, 0, -14, BJ.glazeG)
-  corridor(b, 0, -14, -4, -22, BJ.glazeG)
+  corridor(b, 8, -10, 0, -14)
+  corridor(b, 0, -14, -4, -22)
   // 湖南端湖岸树
   for (const [x, z] of [[18, 10], [20, 18], [22, 26]]) roundTree(b, x, 0, z, 0.8, YH.willow)
 

@@ -83,6 +83,11 @@ export class PhotoSystem {
     this.rt.setSize(size.x, size.y)
     this.uniforms.uRes.value.copy(size)
   }
+  dispose() {
+    this.rt.dispose()
+    this.quad.geometry.dispose()
+    this.quad.material.dispose()
+  }
   render(scene, camera, t) {
     if (this.filter === 'none') {
       this.renderer.setRenderTarget(null)

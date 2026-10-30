@@ -1,9 +1,8 @@
 // 程序化城市：方块地形 + 分区建筑 + 行道树（分块加载）
 import * as THREE from 'three'
 import { Builder, disposeGroup } from './builder.js'
-import { terrainHeight, isWater, roadAt, riverAt, districtAt, isPark, project, unproject } from './geo.js'
+import { terrainHeight, isWater, roadAt, districtAt, isPark, project } from './geo.js'
 import { hash2, mulberry32 } from './util.js'
-import { getMaterials } from './materials.js'
 import { roundTree, pine, lamp } from './landmarks/common.js'
 
 export const CHUNK = 240
@@ -100,7 +99,7 @@ export class CityManager {
     const owner = 'chunk:' + key
     const x0 = cx * CHUNK, z0 = cz * CHUNK
     const group = new THREE.Group()
-    group.add(this.buildTerrain(x0, z0, owner))
+    group.add(this.buildTerrain(x0, z0))
     const b = new Builder(0, 0, 0, 0, this.world, owner)
     this.buildLots(b, x0, z0, detail)
     if (detail) this.buildStreets(b, x0, z0)
@@ -108,7 +107,7 @@ export class CityManager {
     this.scene.add(group)
     return { cx, cz, group, detail }
   }
-  buildTerrain(x0, z0, owner) {
+  buildTerrain(x0, z0) {
     const N = CHUNK / CELL
     const H = new Int16Array((N + 2) * (N + 2))
     const W = new Uint8Array((N + 2) * (N + 2))

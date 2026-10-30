@@ -1,9 +1,9 @@
 // 交通系统：观光巴士、地铁快速传送、昆明湖游船、城市车流；交互点注册表
 import * as THREE from 'three'
 import { Builder, disposeGroup } from './builder.js'
-import { BUS_ROUTE, METRO_STATIONS, PIERS, ROADS, cruiseRoute, WATER_Y, terrainHeight, isWater, roadAt, project } from './geo.js'
+import { BUS_ROUTE, METRO_STATIONS, ROADS, cruiseRoute, WATER_Y, terrainHeight, isWater } from './geo.js'
 import { busShelter, metroEntrance } from './landmarks/common.js'
-import { polyLength, samplePoly, mulberry32, pick, clamp, smooth } from './util.js'
+import { polyLength, samplePoly, mulberry32, pick, clamp } from './util.js'
 
 // ---------------- 交互点 ----------------
 export class InteractRegistry {
@@ -18,7 +18,7 @@ export class InteractRegistry {
   removeOwner(owner) {
     this.items = this.items.filter((i) => i.owner !== owner)
   }
-  nearest(x, y, z, maxR = 6) {
+  nearest(x, y, z) {
     let best = null, bd = Infinity
     for (const it of this.items) {
       // 交互点高度：未指定时取所在地形高度（山顶等高处同样可用）
@@ -156,10 +156,9 @@ export class TransportSystem {
     this.busWait = 5
     this.busStopIdx = 0
     this.busSpeed = 24
-    const sb = new Builder(0, 0, 0, 0, world, 'transport')
     for (const st of this.stops) {
       const sub = new Builder(st.wx, 0, st.wz, st.dir - Math.PI / 2, world, 'transport')
-      busShelter(sub, 0, 0, 0, '观光巴士·' + st.name)
+      busShelter(sub, 0, 0, '观光巴士·' + st.name)
       this.static.add(sub.build())
       game.interact.add({ x: st.wx, z: st.wz, r: 4.5, type: 'bus', label: '观光巴士 · ' + st.name + '站', stop: st }, 'transport')
     }
@@ -258,7 +257,6 @@ export class TransportSystem {
     const nx = Math.cos(dir), nz = -Math.sin(dir)
     const tx = p.x - nx * 3.5, tz = p.z - nz * 3.5
     let y = 0.05
-    const r = roadAt(tx, tz)
     if (isWater(tx, tz)) y = 0.4
     this.bus.position.set(tx, y, tz)
     let d = dir - this.bus.rotation.y

@@ -81,13 +81,26 @@ export const store = reactive({
 })
 
 let saveTimer = null
+function writeSave(json) {
+  try {
+    localStorage.setItem(SAVE_KEY, json)
+    return true
+  } catch (e) {
+    // 配额写满：放弃自定义皮肤 dataURL 这个大块头再试一次，保住游戏进度并明确告知用户
+    try {
+      const lite = { ...store.save, profile: store.save.profile ? { ...store.save.profile, customSkin: null } : null }
+      localStorage.setItem(SAVE_KEY, JSON.stringify(lite))
+      toast('⚠️ 浏览器存储空间不足，已移除自定义皮肤以保存游戏进度', 'warn', 6000)
+      return true
+    } catch (e2) {
+      toast('⚠️ 存档保存失败：浏览器存储空间已满，请清理站点数据', 'warn', 8000)
+      return false
+    }
+  }
+}
 export function persist() {
   clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(store.save))
-    } catch (e) {}
-  }, 300)
+  saveTimer = setTimeout(() => writeSave(JSON.stringify(store.save)), 300)
 }
 
 export function resetSave() {
@@ -222,7 +235,7 @@ export function checkTasks() {
 
 // ---------- 事件 ----------
 export const events = {
-  discover(id, name) {
+  discover(id) {
     const s = store.save
     if (s.discovered.includes(id)) return false
     s.discovered.push(id)
